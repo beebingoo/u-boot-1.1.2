@@ -138,13 +138,60 @@ static void netboot_update_env (void)
 		setenv ("domain", NetOurNISDomain);
 }
 
+int save_img(int size)
+{
+	int   rcode = 0;
+	
+	int rc;
+	ulong	end_addr, end_addr_p;
+	ulong	flash_sect_addr;
+	char buf[32];
+	
+	//flash_sect_addr = 0x30000;
+	flash_sect_addr = 0x40000;//edited by ldh 101021
+	end_addr = flash_sect_addr + size - 1;
+	end_addr_p = end_addr | 0xffff;
+	printf("Protect off %08lX ... %08lX\n", (ulong)flash_sect_addr, end_addr_p);
+
+	if (flash_sect_protect (0, flash_sect_addr, end_addr_p))
+		return 1;
+
+	puts ("Erasing Flash...");
+	if (flash_sect_erase (flash_sect_addr, end_addr_p))
+		return 1;
+
+	puts ("Writing to Flash... ");
+	rc = flash_write((uchar *)load_addr, flash_sect_addr, size);
+	if (rc != 0) {
+		flash_perror (rc);
+		rcode = 1;
+	} else {
+		puts ("done\n");
+	}
+
+	/* try to re-protect */
+	printf("Protect on %08lX ... %08lX\n", (ulong)flash_sect_addr, end_addr_p);
+	(void) flash_sect_protect (1, flash_sect_addr, end_addr_p);
+	
+	sprintf(buf, "%x", size);
+	setenv("imgfilesize", buf);
+	saveenv();
+	
+	return rcode;
+}
+
 static int
 netboot_common (int proto, cmd_tbl_t *cmdtp, int argc, char *argv[])
 {
 	char *s;
 	int   rcode = 0;
 	int   size;
-
+	/*
+	int rc;
+	ulong	end_addr, end_addr_p;
+	ulong	flash_sect_addr;
+	char buf[32];
+	*/
 	/* pre-set load_addr */
 	if ((s = getenv("loadaddr")) != NULL) {
 		load_addr = simple_strtoul(s, NULL, 16);
@@ -185,8 +232,42 @@ netboot_common (int proto, cmd_tbl_t *cmdtp, int argc, char *argv[])
 		return 0;
 
 	/* flush cache */
+	
 	flush_cache(load_addr, size);
+	//added by ldh 100928
+	save_img(size);
+	/***************************/
+	/*
+	flash_sect_addr = 0x30000;
+	end_addr = flash_sect_addr + size - 1;
+	end_addr_p = end_addr | 0xffff;
+	printf("Protect off %08lX ... %08lX\n", (ulong)flash_sect_addr, end_addr_p);
 
+	if (flash_sect_protect (0, flash_sect_addr, end_addr_p))
+		return 1;
+
+	puts ("Erasing Flash...");
+	if (flash_sect_erase (flash_sect_addr, end_addr_p))
+		return 1;
+
+	puts ("Writing to Flash... ");
+	rc = flash_write(load_addr, flash_sect_addr, size);
+	if (rc != 0) {
+		flash_perror (rc);
+		rcode = 1;
+	} else {
+		puts ("done\n");
+	}
+
+	
+	printf("Protect on %08lX ... %08lX\n", (ulong)flash_sect_addr, end_addr_p);
+	(void) flash_sect_protect (1, flash_sect_addr, end_addr_p);
+	
+	sprintf(buf, "%lx", size);
+	setenv("imgfilesize", buf);
+	saveenv();
+	*/
+	/************************************/
 	/* Loading ok, check if we should attempt an auto-start */
 	if (((s = getenv("autostart")) != NULL) && (strcmp(s,"yes") == 0)) {
 		char *local_args[2];

@@ -57,7 +57,7 @@ ifeq ($(ARCH),ppc)
 CROSS_COMPILE = ppc_8xx-
 endif
 ifeq ($(ARCH),arm)
-CROSS_COMPILE = arm-linux-
+CROSS_COMPILE = arm-elf-
 endif
 ifeq ($(ARCH),i386)
 ifeq ($(HOSTARCH),i386)
@@ -1333,6 +1333,9 @@ versatile_config :	unconfig
 
 B2_config	:	unconfig
 	@./mkconfig $(@:_config=) arm s3c44b0 B2 dave
+
+myboards3c44b0_config	:	unconfig
+	@./mkconfig $(@:_config=) arm s3c44b0 myboards3c44b0 myboard
 
 #########################################################################
 ## ARM720T Systems

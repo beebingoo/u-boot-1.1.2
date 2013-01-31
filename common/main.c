@@ -296,6 +296,35 @@ static __inline__ int abortboot(int bootdelay)
 # endif	/* CONFIG_AUTOBOOT_KEYED */
 #endif	/* CONFIG_BOOTDELAY >= 0  */
 
+void auto_boot_img(void)
+{
+	ulong	start_addr, addr, dest, count; //added by ldh 100928
+	char *s_addr = "c100000";
+	char *s;
+	
+	//addr = 0x30000;
+	addr = 0x40000;//editted by ldh 101021
+	dest = 0x0c100000;
+	s = getenv ("imgfilesize");
+	//printf("\n imgfilesiz = %s\n", s);
+	count = simple_strtol(s, NULL, 16);
+	//printf("\n img size = 0x%08lX\n", count);
+	if (count == 0) {
+		puts ("ERROR: Zero image length\n");
+		return;
+	}
+	while (count-- > 0) {		
+		*((u_char *)dest) = *((u_char *)addr);
+		addr += 1;
+		dest += 1;
+	}
+
+	start_addr = 0x0c100000;
+	printf ("## Starting application at 0x%08lX ...\n", start_addr);
+	((ulong (*)(int, char *))start_addr) (2, s_addr);
+	
+	return;
+}
 /****************************************************************************/
 
 void main_loop (void)
@@ -314,6 +343,8 @@ void main_loop (void)
 #ifdef CONFIG_PREBOOT
 	char *p;
 #endif
+	//ulong	start_addr, addr, dest, count; //added by ldh 100928
+	//char *s_addr = "c100000";
 #ifdef CONFIG_BOOTCOUNT_LIMIT
 	unsigned long bootcount = 0;
 	unsigned long bootlimit = 0;
@@ -406,17 +437,44 @@ void main_loop (void)
 	}
 	else
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
-		s = getenv ("bootcmd");
 
-	debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
+		//s = getenv ("bootcmd");
 
+	//debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
+	//printf("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
 	if (bootdelay >= 0 && s && !abortboot (bootdelay)) {
 # ifdef CONFIG_AUTOBOOT_KEYED
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
+
 # endif
 
 # ifndef CFG_HUSH_PARSER
-		run_command (s, 0);
+		//run_command (s, 0);
+		//added by ldh 100928
+		auto_boot_img();
+			/*************************/
+			/*
+			addr = 0x30000;
+			dest = 0x0c100000;
+			s = getenv ("imgfilesize");
+			//printf("\n imgfilesiz = %s\n", s);
+			count = simple_strtol(s, NULL, 16);
+			//printf("\n img size = 0x%08lX\n", count);
+			if (count == 0) {
+				puts ("ERROR: Zero image length\n");
+				return;
+			}
+			while (count-- > 0) {		
+				*((u_char *)dest) = *((u_char *)addr);
+				addr += 1;
+				dest += 1;
+			}
+
+			start_addr = 0x0c100000;
+			printf ("## Starting application at 0x%08lX ...\n", start_addr);
+			((ulong (*)(int, char *))start_addr) (2, s_addr);
+			*/
+			/*************************/
 # else
 		parse_string_outer(s, FLAG_PARSE_SEMICOLON |
 				    FLAG_EXIT_FROM_LOOP);
@@ -424,9 +482,11 @@ void main_loop (void)
 
 # ifdef CONFIG_AUTOBOOT_KEYED
 		disable_ctrlc(prev);	/* restore Control C checking */
+
 # endif
 	}
 
+	
 # ifdef CONFIG_MENUKEY
 	if (menukey == CONFIG_MENUKEY) {
 	    s = getenv("menucmd");
@@ -478,6 +538,7 @@ void main_loop (void)
 			/* -2 means timed out, retry autoboot
 			 */
 			puts ("\nTimed out waiting for command\n");
+			
 # ifdef CONFIG_RESET_TO_RETRY
 			/* Reinit board to run initialization code again */
 			do_reset (NULL, 0, 0, NULL);

@@ -39,6 +39,7 @@
 
 .globl _start
 _start:	b       reset
+/*
 	add	pc, pc, #0x0c000000
 	add	pc, pc, #0x0c000000
 	add	pc, pc, #0x0c000000
@@ -46,10 +47,24 @@ _start:	b       reset
 	add	pc, pc, #0x0c000000
 	add	pc, pc, #0x0c000000
 	add	pc, pc, #0x0c000000
-
+*/
+	LDR PC, =HandleUndefined
+	LDR PC, =HandleSWI
+	LDR PC, =HandlePrefetch
+	LDR PC, =HandleAbort
+	LDR PC, =HandleReserved
+	LDR PC, =HandleIRQ
+	LDR PC, =HandleFIQ
 	.balignl 16,0xdeadbeef
 
-
+.equ HandleReset, 0x0c000000
+.equ HandleUndefined, 0x0c000004
+.equ HandleSWI, 0x0c000008
+.equ HandlePrefetch, 0x0c00000C
+.equ HandleAbort, 0x0c000010
+.equ HandleReserved, 0x0c000014
+.equ HandleIRQ, 0x0c000018
+.equ HandleFIQ, 0x0c00001C
 /*
  *************************************************************************
  *
@@ -93,6 +108,7 @@ FIQ_STACK_START:
 	.word 0x0badc0de
 #endif
 
+	
 
 /*
  * the actual reset code
@@ -184,6 +200,9 @@ _start_armboot:	.word start_armboot
 #define PLLCON (0x01c00000+0x180000)
 #define CLKCON (0x01c00000+0x180004)
 #define WTCON (0x01c00000+0x130000)
+#define M_DIV 56
+#define P_DIV 2
+#define S_DIV 1
 cpu_init_crit:
 	/* disable watch dog */
 	ldr 	r0, =WTCON
@@ -212,6 +231,8 @@ cpu_init_crit:
 	ldr	r0, =0x34031 	/* 66MHz (Quartz=11MHz) */
 #elif CONFIG_S3C44B0_CLOCK_SPEED==75
 	ldr	r0, =0x610c1 /*B2: Xtal=20mhz Fclk=75MHz  */
+#elif CONFIG_S3C44B0_CLOCK_SPEED==64
+	ldr r0, =((M_DIV<<12)+(P_DIV<<4)+S_DIV) /*Fin=8MHz,Fout=64MHz */
 #else
 # error CONFIG_S3C44B0_CLOCK_SPEED undefined
 #endif

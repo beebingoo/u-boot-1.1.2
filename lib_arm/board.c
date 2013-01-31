@@ -31,14 +31,17 @@
 #include <devices.h>
 #include <version.h>
 #include <net.h>
-
+/*
 #ifdef CONFIG_DRIVER_SMC91111
 #include "../drivers/smc91111.h"
 #endif
 #ifdef CONFIG_DRIVER_LAN91C96
 #include "../drivers/lan91c96.h"
 #endif
-
+*/
+#ifdef CONFIG_DRIVER_RTL8019
+#include "../drivers/rtl8019.h"
+#endif
 #if (CONFIG_COMMANDS & CFG_CMD_NAND)
 void nand_init (void);
 #endif
@@ -56,11 +59,11 @@ extern void dataflash_print_info(void);
 
 const char version_string[] =
 	U_BOOT_VERSION" (" __DATE__ " - " __TIME__ ")"CONFIG_IDENT_STRING;
-
+/*
 #ifdef CONFIG_DRIVER_CS8900
 extern void cs8900_get_enetaddr (uchar * addr);
 #endif
-
+*/
 #ifdef CONFIG_DRIVER_RTL8019
 extern void rtl8019_get_enetaddr (uchar * addr);
 #endif
@@ -318,6 +321,7 @@ void start_armboot (void)
 	enable_interrupts ();
 
 	/* Perform network card initialisation if necessary */
+	/*
 #ifdef CONFIG_DRIVER_CS8900
 	cs8900_get_enetaddr (gd->bd->bi_enetaddr);
 #endif
@@ -326,8 +330,14 @@ void start_armboot (void)
 	if (getenv ("ethaddr")) {
 		smc_set_mac_addr(gd->bd->bi_enetaddr);
 	}
-#endif /* CONFIG_DRIVER_SMC91111 || CONFIG_DRIVER_LAN91C96 */
-
+#endif *//* CONFIG_DRIVER_SMC91111 || CONFIG_DRIVER_LAN91C96 */
+	eth_init(gd->bd);
+	/*
+	if (getenv ("ethaddr")) {
+		rtl8019_get_enetaddr(gd->bd->bi_enetaddr);
+	}
+	*/
+	//eth_init(gd->bd); //added by ldh 100926
 	/* Initialize from environment */
 	if ((s = getenv ("loadaddr")) != NULL) {
 		load_addr = simple_strtoul (s, NULL, 16);
