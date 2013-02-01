@@ -99,7 +99,6 @@ void eth_halt (void)
 
 int eth_init (bd_t * bd)
 {
-	printf("\nrtl8019 initing ...\n");
 	eth_reset ();
 	put_reg (RTL8019_COMMAND, RTL8019_PAGE0STOP);
 	put_reg (RTL8019_DATACONFIGURATION, 0x48);

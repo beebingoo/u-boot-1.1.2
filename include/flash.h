@@ -322,7 +322,6 @@ extern void flash_read_factory_serial(flash_info_t * info, void * buffer, int of
 #define FLASH_SST800A	0x0044		/* SST 39xF800A ID (  8M = 512K x 16 )	*/
 #define FLASH_SST160A	0x0046		/* SST 39xF160A ID ( 16M =   1M x 16 )	*/
 #define FLASH_SST320	0x0048		/* SST 39xF160A ID ( 16M =   1M x 16 )	*/
-#define FLASH_SST3201	0x005B		/* SST 39xF160A ID ( 16M =   1M x 16 )	*/
 #define FLASH_SST640	0x004A		/* SST 39xF160A ID ( 16M =   1M x 16 )	*/
 #define FLASH_SST040	0x000E		/* SST 39xF040 ID (512KB = 4Mbit x 8 )	*/
 
