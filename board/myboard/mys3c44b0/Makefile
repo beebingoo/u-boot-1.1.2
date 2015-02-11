@@ -26,7 +26,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(BOARD).a
 
-OBJS	:= myboards3c44b0.o flash.o
+OBJS	:= mys3c44b0.o flash.o
 SOBJS	:= memsetup.o
 
 $(LIB):	$(OBJS) $(SOBJS)
